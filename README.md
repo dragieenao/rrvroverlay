@@ -2,7 +2,8 @@
 <img width="788" height="317" alt="image" src="https://github.com/user-attachments/assets/7fbd0a23-0adc-4803-92c3-2761dc76d2b6" />
 
 ## Overview
-A stream overlay for displaying VR for any license in Retro Rewind
+A stream overlay for displaying VR for any license in Retro Rewind 
+Uses fonts thats locally installed in your computer for some customization
 
 ## Download
 Downloads for the overlay is at the [releases](https://github.com/dragieenao/rrvroverlay/releases) tab
