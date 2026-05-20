@@ -5,7 +5,7 @@
 A stream overlay for displaying VR for any license in Retro Rewind
 
 ## Download
-Downloads for the overlay is at the releases tab
+Downloads for the overlay is at the [releases](https://github.com/dragieenao/rrvroverlay/releases) tab
 
 ## Guide
 1. Launch `VR Overlay (RR).exe`
@@ -22,4 +22,4 @@ Downloads for the overlay is at the releases tab
 6. Adjust the smoothness and similarity (to remove some little green-ish stuff in the overlay)
 
 ## License
-[MIT](https://github.com/DragHeru/rrvroverlay/blob/main/LICENSE)
+[MIT](https://github.com/dragieenao/rrvroverlay/edit/main/LICENSE)
