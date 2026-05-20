@@ -17,6 +17,7 @@ Downloads for the overlay is at the releases tab
 2. Add Window Capture source
 3. Select [VR Overlay (RR).exe]: overlay display
 <img width="311" height="60" alt="image" src="https://github.com/user-attachments/assets/3dbe4183-26e8-4c79-8b45-c0a8a96f67a1" />
+
 5. Right click the source and add a filter>color key
 6. Adjust the smoothness and similarity (to remove some little green-ish stuff in the overlay)
 
