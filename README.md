@@ -21,6 +21,8 @@ Downloads for the overlay is at the [releases](https://github.com/dragieenao/rrv
 5. Right click the source and add a filter>color key
 6. Adjust the smoothness and similarity (to remove some little green-ish stuff in the overlay)
 
+### Note: After each race remember to refresh by clicking the fetch button again (its not automatic but might be add an auto feature when possible)
+
 ## Author
 @dragieee (Discord)
 [X/Twitter](https://x.com/dragiee_)
