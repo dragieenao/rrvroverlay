@@ -11,6 +11,8 @@ current_friend_code = None
 data_window = None
 current_font = "@FOT-RodinNTLG Pro EB"
 ui_elements = {}
+refresh_timer = None
+REFRESH_INTERVAL = 180000
 
 
 def format_friend_code(code: str) -> str:
@@ -49,13 +51,31 @@ def fetch_player_data(friend_code_input: str = None) -> None:
     vr_value = data.get("vr", "N/A")
     mii_image_base64 = data.get("miiImageBase64", "")
 
-    # Create new data window if it doesn't exist or was closed
     if data_window is None or not data_window.winfo_exists():
         create_data_window(vr_value, mii_image_base64)
     else:
         update_data_window(vr_value, mii_image_base64)
     
     status_label.config(text="Overlay loaded.")
+    schedule_refresh()
+
+
+def schedule_refresh() -> None:
+    global refresh_timer
+    
+    if refresh_timer is not None:
+        window.after_cancel(refresh_timer)
+    
+    refresh_timer = window.after(REFRESH_INTERVAL, auto_refresh)
+
+
+def auto_refresh() -> None:
+    global current_friend_code, refresh_timer
+    
+    if current_friend_code and data_window and data_window.winfo_exists():
+        fetch_player_data(current_friend_code)
+    else:
+        refresh_timer = None
 
 
 def create_data_window(vr_value, mii_image_base64) -> None:
@@ -70,7 +90,6 @@ def create_data_window(vr_value, mii_image_base64) -> None:
     frame_data = tk.Frame(data_window, padx=14, pady=14, bg="#00FF00")
     frame_data.pack(fill="both", expand=True)
     
-    # Display VR data
     vr_frame = tk.Frame(frame_data, bg="#00FF00")
     vr_frame.pack(fill="x", pady=(0, 10), anchor="w")
     vr_frame.columnconfigure(1, weight=0)
@@ -153,7 +172,6 @@ window.config(bg="#3A3A3A")
 frame = tk.Frame(window, padx=14, pady=14, bg="#3A3A3A")
 frame.pack(fill="both", expand=True)
 
-# Font selector
 font_frame = tk.Frame(frame, bg="#3A3A3A")
 font_frame.pack(anchor="w", pady=(0, 10))
 font_label = tk.Label(font_frame, text="Font:", font=("@FOT-RodinNTLG Pro EB", 9), bg="#3A3A3A", fg="white")
