@@ -25,9 +25,16 @@ Downloads for the overlay is at the [releases](https://github.com/dragieenao/rrv
 
 ### Note: Every 3 minutes the player vr refreshes. You can click "Fetch Data" after voting phase for an early refresh
 
+## To-do list (updates)
+- [ ] Mii remove feature
+- [ ] Add gain / loss vr from last update
+- [ ] Fix vr being off by 5 (in some cases)
+
 ## Author
 @dragieee (Discord)
 [X/Twitter](https://x.com/dragiee_)
 
 ## License
 [MIT](https://github.com/dragieenao/rrvroverlay/edit/main/LICENSE)
+
+
