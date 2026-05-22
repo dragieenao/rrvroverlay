@@ -1,5 +1,6 @@
 # Retro Rewind VR Stream Overlay 
-<img width="788" height="317" alt="image" src="https://github.com/user-attachments/assets/7fbd0a23-0adc-4803-92c3-2761dc76d2b6" />
+<img width="773" height="350" alt="image" src="https://github.com/user-attachments/assets/5c0dee5f-37c1-4fab-8067-12407d4934ea" />
+
 
 ## Overview
 A stream overlay for displaying VR for any license in Retro Rewind 
@@ -26,8 +27,8 @@ Downloads for the overlay is at the [releases](https://github.com/dragieenao/rrv
 ### Note: Every 3 minutes the player vr refreshes. You can click "Fetch Data" after voting phase for an early refresh
 
 ## To-do list (updates)
-- [ ] Mii remove feature
-- [ ] Add gain / loss vr from last update
+- [x] Mii remove feature
+- [x] Add gain / loss vr from last update
 - [ ] Fix vr being off by 5 (in some cases)
 
 ## Author
