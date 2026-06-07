@@ -5,8 +5,6 @@
 ## Overview
 A stream overlay for displaying VR for any license in Retro Rewind 
 
-Uses fonts thats locally installed in your computer for some customization
-
 Allows you to hide your mii to prevent streamsnipers!
 
 ## Download
@@ -31,7 +29,6 @@ Downloads for the overlay is at the [releases](https://github.com/dragieenao/rrv
 ## To-do list (updates)
 - [x] Mii remove feature
 - [x] Add gain / loss vr from last update
-- [ ] Fix vr being off by 5 (in some cases)
 
 ## Author
 @dragieee (Discord)
