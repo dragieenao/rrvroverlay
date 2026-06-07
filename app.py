@@ -14,6 +14,7 @@ refresh_timer = None
 REFRESH_INTERVAL = 30000
 show_mii_image = True
 mii_position = "left"
+last_vr = None
 
 
 def format_friend_code(code: str) -> str:
@@ -24,7 +25,7 @@ def format_friend_code(code: str) -> str:
 
 
 def fetch_player_data(friend_code_input: str = None) -> None:
-    global current_friend_code, data_window
+    global current_friend_code, data_window, last_vr
 
     raw_code = friend_code_input.strip() if friend_code_input else friend_code_entry.get().strip()
     friend_code = format_friend_code(raw_code)
@@ -48,10 +49,17 @@ def fetch_player_data(friend_code_input: str = None) -> None:
     vr_value = data.get("vr", "N/A")
     mii_image_base64 = data.get("miiImageBase64", "")
 
+    try:
+        vr_int = int(vr_value)
+        vr_delta = (vr_int - last_vr) if last_vr is not None else None
+        last_vr = vr_int
+    except (ValueError, TypeError):
+        vr_delta = None
+
     if data_window is None or not data_window.winfo_exists():
-        create_data_window(vr_value, mii_image_base64)
+        create_data_window(vr_value, mii_image_base64, vr_delta)
     else:
-        update_data_window(vr_value, mii_image_base64)
+        update_data_window(vr_value, mii_image_base64, vr_delta)
 
     status_label.config(text="Overlay loaded.")
     schedule_refresh()
@@ -78,6 +86,10 @@ def get_mii_anchor() -> str:
     return "w" if mii_position == "left" else "e"
 
 
+def get_delta_anchor() -> str:
+    return "e" if mii_position == "left" else "w"
+
+
 def decode_mii_image(mii_image_base64):
     image_data = base64.b64decode(mii_image_base64)
     image = Image.open(BytesIO(image_data))
@@ -85,12 +97,21 @@ def decode_mii_image(mii_image_base64):
     return ImageTk.PhotoImage(image)
 
 
-def create_data_window(vr_value, mii_image_base64) -> None:
+def format_delta(delta: int) -> tuple[str, str]:
+    if delta > 0:
+        return f"▲ +{delta}", "#4488FF"
+    elif delta < 0:
+        return f"▼ {delta}", "#FF4444"
+    else:
+        return "▶ +0", "#AAAAAA"
+
+
+def create_data_window(vr_value, mii_image_base64, vr_delta=None) -> None:
     global data_window
 
     data_window = tk.Toplevel(window)
     data_window.title("overlay display")
-    data_window.geometry("220x200")
+    data_window.geometry("220x230")
     data_window.resizable(False, False)
     data_window.config(bg="#00FF00")
 
@@ -101,6 +122,14 @@ def create_data_window(vr_value, mii_image_base64) -> None:
     vr_canvas.pack(anchor="w")
     draw_outlined_text(vr_canvas, f"VR: {vr_value}", 96, 30, ("@FOT-RodinNTLG Pro EB", 18, "bold"))
     ui_elements["data_vr_canvas"] = vr_canvas
+
+    delta_label = tk.Label(frame_data, text="", font=("@FOT-RodinNTLG Pro EB", 13, "bold"), bg="#00FF00")
+    delta_label.pack(anchor=get_delta_anchor(), pady=(0, 4))
+    ui_elements["data_delta_label"] = delta_label
+
+    if vr_delta is not None:
+        text, color = format_delta(vr_delta)
+        delta_label.config(text=text, fg=color)
 
     if mii_image_base64:
         try:
@@ -130,13 +159,21 @@ def draw_outlined_text(canvas, text, x, y, font,
     canvas.create_text(x, y, text=text, font=font, fill=fill_color, tags="vr_text")
 
 
-def update_data_window(vr_value, mii_image_base64) -> None:
+def update_data_window(vr_value, mii_image_base64, vr_delta=None) -> None:
     if data_window is None or not data_window.winfo_exists():
         return
 
     vr_canvas = ui_elements.get("data_vr_canvas")
     if vr_canvas:
         draw_outlined_text(vr_canvas, f"VR: {vr_value}", 96, 30, ("@FOT-RodinNTLG Pro EB", 18, "bold"))
+
+    delta_label = ui_elements.get("data_delta_label")
+    if delta_label and delta_label.winfo_exists():
+        if vr_delta is not None:
+            text, color = format_delta(vr_delta)
+            delta_label.config(text=text, fg=color)
+        else:
+            delta_label.config(text="")
 
     if mii_image_base64:
         try:
@@ -185,6 +222,11 @@ def set_mii_position(pos: str) -> None:
     if mii_label and mii_label.winfo_exists() and show_mii_image:
         mii_label.pack_forget()
         mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
+
+    delta_label = ui_elements.get("data_delta_label")
+    if delta_label and delta_label.winfo_exists():
+        delta_label.pack_forget()
+        delta_label.pack(anchor=get_delta_anchor(), pady=(0, 4))
 
 
 FONT = ("@FOT-RodinNTLG Pro EB", 11)
