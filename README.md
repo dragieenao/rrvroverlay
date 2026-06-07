@@ -9,6 +9,7 @@ A stream overlay for displaying VR for any license in Retro Rewind
 
 Allows you to hide your mii to prevent streamsnipers!
 
+Shows gain/loss VR after every automatic refresh (every ~30 seconds)
 ## Download
 Downloads for the overlay is at the [releases](https://github.com/dragieenao/rrvroverlay/releases) tab
 
