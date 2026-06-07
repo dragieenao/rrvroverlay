@@ -1,7 +1,7 @@
 import re
-import requests 
+import requests
 import tkinter as tk
-from tkinter import messagebox, font as tkfont, ttk
+from tkinter import messagebox
 import base64
 from PIL import Image, ImageTk
 from io import BytesIO
@@ -9,10 +9,11 @@ from io import BytesIO
 API_URL = "https://rwfc.net/api/leaderboard/player/{}"
 current_friend_code = None
 data_window = None
-current_font = "@FOT-RodinNTLG Pro EB"
 ui_elements = {}
 refresh_timer = None
-REFRESH_INTERVAL = 180000
+REFRESH_INTERVAL = 30000
+show_mii_image = True
+mii_position = "left"
 
 
 def format_friend_code(code: str) -> str:
@@ -24,12 +25,8 @@ def format_friend_code(code: str) -> str:
 
 def fetch_player_data(friend_code_input: str = None) -> None:
     global current_friend_code, data_window
-    
-    if friend_code_input:
-        raw_code = friend_code_input.strip()
-    else:
-        raw_code = friend_code_entry.get().strip()
-    
+
+    raw_code = friend_code_input.strip() if friend_code_input else friend_code_entry.get().strip()
     friend_code = format_friend_code(raw_code)
     if not friend_code:
         messagebox.showerror("Invalid Code", "Enter a 12-digit friend code like 1159-6423-1010.")
@@ -55,87 +52,109 @@ def fetch_player_data(friend_code_input: str = None) -> None:
         create_data_window(vr_value, mii_image_base64)
     else:
         update_data_window(vr_value, mii_image_base64)
-    
+
     status_label.config(text="Overlay loaded.")
     schedule_refresh()
 
 
 def schedule_refresh() -> None:
     global refresh_timer
-    
+
     if refresh_timer is not None:
         window.after_cancel(refresh_timer)
-    
     refresh_timer = window.after(REFRESH_INTERVAL, auto_refresh)
 
 
 def auto_refresh() -> None:
-    global current_friend_code, refresh_timer
-    
+    global refresh_timer
+
     if current_friend_code and data_window and data_window.winfo_exists():
         fetch_player_data(current_friend_code)
     else:
         refresh_timer = None
 
 
+def get_mii_anchor() -> str:
+    return "w" if mii_position == "left" else "e"
+
+
+def decode_mii_image(mii_image_base64):
+    image_data = base64.b64decode(mii_image_base64)
+    image = Image.open(BytesIO(image_data))
+    image = image.resize((100, 100), Image.Resampling.LANCZOS)
+    return ImageTk.PhotoImage(image)
+
+
 def create_data_window(vr_value, mii_image_base64) -> None:
     global data_window
-    
+
     data_window = tk.Toplevel(window)
     data_window.title("overlay display")
-    data_window.geometry("350x180")
+    data_window.geometry("220x200")
     data_window.resizable(False, False)
     data_window.config(bg="#00FF00")
-    
+
     frame_data = tk.Frame(data_window, padx=14, pady=14, bg="#00FF00")
     frame_data.pack(fill="both", expand=True)
-    
-    vr_frame = tk.Frame(frame_data, bg="#00FF00")
-    vr_frame.pack(fill="x", pady=(0, 10), anchor="w")
-    vr_frame.columnconfigure(1, weight=0)
-    
-    vr_combined = tk.Label(vr_frame, text=f"VR: {vr_value}", font=("@FOT-RodinNTLG Pro EB", 18, "bold"), bg="#00FF00", fg="white")
-    vr_combined.grid(row=0, column=0, sticky="nsw", padx=(0, 0), rowspan=2)
-    ui_elements["data_vr_label"] = vr_combined
 
+    vr_canvas = tk.Canvas(frame_data, width=192, height=60, bg="#00FF00", highlightthickness=0)
+    vr_canvas.pack(anchor="w")
+    draw_outlined_text(vr_canvas, f"VR: {vr_value}", 96, 30, ("@FOT-RodinNTLG Pro EB", 18, "bold"))
+    ui_elements["data_vr_canvas"] = vr_canvas
 
     if mii_image_base64:
         try:
-            image_data = base64.b64decode(mii_image_base64)
-            image = Image.open(BytesIO(image_data))
-            image = image.resize((100, 100), Image.Resampling.LANCZOS)
-            photo = ImageTk.PhotoImage(image)
-            mii_label = tk.Label(vr_frame, image=photo, bg="#00FF00")
+            photo = decode_mii_image(mii_image_base64)
+            mii_label = tk.Label(frame_data, image=photo, bg="#00FF00")
             mii_label.image = photo
-            mii_label.grid(row=0, column=1, rowspan=2, padx=(2, 0))
+            if show_mii_image:
+                mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
             ui_elements["data_mii_label"] = mii_label
         except Exception as e:
             print(f"Error loading Mii image: {e}")
+
+
+def draw_outlined_text(canvas, text, x, y, font,
+                       outline_color="black",
+                       fill_color="white") -> None:
+    canvas.delete("vr_text")
+
+    outline_width = 1
+
+    for dx in range(-outline_width, outline_width + 1):
+        for dy in range(-outline_width, outline_width + 1):
+            if dx == 0 and dy == 0:
+                continue
+            canvas.create_text(x + dx, y + dy, text=text, font=font, fill=outline_color, tags="vr_text")
+
+    canvas.create_text(x, y, text=text, font=font, fill=fill_color, tags="vr_text")
 
 
 def update_data_window(vr_value, mii_image_base64) -> None:
     if data_window is None or not data_window.winfo_exists():
         return
 
-    vr_label = ui_elements.get("data_vr_label")
-    if vr_label:
-        vr_label.config(text=f"VR: {vr_value}")
+    vr_canvas = ui_elements.get("data_vr_canvas")
+    if vr_canvas:
+        draw_outlined_text(vr_canvas, f"VR: {vr_value}", 96, 30, ("@FOT-RodinNTLG Pro EB", 18, "bold"))
 
     if mii_image_base64:
         try:
-            image_data = base64.b64decode(mii_image_base64)
-            image = Image.open(BytesIO(image_data))
-            image = image.resize((100, 100), Image.Resampling.LANCZOS)
-            photo = ImageTk.PhotoImage(image)
-
+            photo = decode_mii_image(mii_image_base64)
             mii_label = ui_elements.get("data_mii_label")
             if mii_label and mii_label.winfo_exists():
                 mii_label.config(image=photo)
                 mii_label.image = photo
+                if show_mii_image:
+                    mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
+                else:
+                    mii_label.pack_forget()
             else:
-                mii_label = tk.Label(vr_label.master, image=photo, bg="#00FF00")
+                parent = ui_elements["data_vr_canvas"].master
+                mii_label = tk.Label(parent, image=photo, bg="#00FF00")
                 mii_label.image = photo
-                mii_label.grid(row=0, column=1, rowspan=2, padx=(2, 0))
+                if show_mii_image:
+                    mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
                 ui_elements["data_mii_label"] = mii_label
         except Exception as e:
             print(f"Error updating Mii image: {e}")
@@ -146,60 +165,77 @@ def update_data_window(vr_value, mii_image_base64) -> None:
             ui_elements.pop("data_mii_label", None)
 
 
-def change_font(new_font: str) -> None:
-    global current_font
-    current_font = new_font
-    
-    for widget_name, widget in ui_elements.items():
-        try:
-            current_font_config = widget.cget("font")
-            if current_font_config:
-                font_parts = tkfont.Font(font=current_font_config).actual()
-                size = font_parts.get("size", 11)
-                weight = font_parts.get("weight", "normal")
-                new_font_tuple = (current_font, size, weight)
-                widget.config(font=new_font_tuple)
-        except Exception as e:
-            print(f"Error updating font for {widget_name}: {e}")
+def toggle_mii_image() -> None:
+    global show_mii_image
+    show_mii_image = not show_mii_image
 
+    mii_label = ui_elements.get("data_mii_label")
+    if mii_label and mii_label.winfo_exists():
+        if show_mii_image:
+            mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
+        else:
+            mii_label.pack_forget()
+
+
+def set_mii_position(pos: str) -> None:
+    global mii_position
+    mii_position = pos
+
+    mii_label = ui_elements.get("data_mii_label")
+    if mii_label and mii_label.winfo_exists() and show_mii_image:
+        mii_label.pack_forget()
+        mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
+
+
+FONT = ("@FOT-RodinNTLG Pro EB", 11)
 
 window = tk.Tk()
 window.title("vr overlay settings")
-window.geometry("420x280")
+window.geometry("420x310")
 window.resizable(False, False)
 window.config(bg="#3A3A3A")
 
 frame = tk.Frame(window, padx=14, pady=14, bg="#3A3A3A")
 frame.pack(fill="both", expand=True)
 
-font_frame = tk.Frame(frame, bg="#3A3A3A")
-font_frame.pack(anchor="w", pady=(0, 10))
-font_label = tk.Label(font_frame, text="Font:", font=("@FOT-RodinNTLG Pro EB", 9), bg="#3A3A3A", fg="white")
-font_label.pack(side=tk.LEFT, padx=(0, 5))
-available_fonts = sorted(tkfont.families())
-font_combo = ttk.Combobox(font_frame, values=available_fonts, state="readonly", width=20)
-font_combo.set("@FOT-RodinNTLG Pro EB")
-font_combo.pack(side=tk.LEFT)
-font_combo.bind("<<ComboboxSelected>>", lambda e: change_font(font_combo.get()))
+tk.Label(frame, text="Enter your friend code", font=FONT, bg="#3A3A3A", fg="white").pack(anchor="w")
 
-instruction = tk.Label(frame, text="Enter your friend code", font=("@FOT-RodinNTLG Pro EB", 11), bg="#3A3A3A", fg="white")
-instruction.pack(anchor="w")
-ui_elements["instruction"] = instruction
-
-friend_code_entry = tk.Entry(frame, font=("@FOT-RodinNTLG Pro EB", 11), width=24)
+friend_code_entry = tk.Entry(frame, font=FONT, width=24)
 friend_code_entry.pack(pady=(6, 10))
 friend_code_entry.focus()
-ui_elements["friend_code_entry"] = friend_code_entry
 
 button_row = tk.Frame(frame, bg="#3A3A3A")
 button_row.pack(pady=(0, 12))
+tk.Button(button_row, text="Fetch Data", command=fetch_player_data, font=FONT, width=10).pack(side=tk.LEFT, padx=(0, 5))
+tk.Button(button_row, text="Toggle Mii", command=toggle_mii_image, font=FONT, width=10).pack(side=tk.LEFT)
 
-fetch_button = tk.Button(button_row, text="Fetch Data", command=fetch_player_data, font=("@FOT-RodinNTLG Pro EB", 11), width=16)
-fetch_button.pack(side=tk.LEFT, padx=(0, 5))
-ui_elements["fetch_button"] = fetch_button
+tk.Label(frame, text="Mii position", font=FONT, bg="#3A3A3A", fg="white").pack(anchor="w", pady=(4, 4))
 
-status_label = tk.Label(frame, text="", font=("@FOT-RodinNTLG Pro EB", 9), fg="white", bg="#00FF00")
+mii_pos_row = tk.Frame(frame, bg="#3A3A3A")
+mii_pos_row.pack(anchor="w", pady=(0, 10))
+tk.Button(mii_pos_row, text="Left", command=lambda: set_mii_position("left"), font=FONT, width=10).pack(side=tk.LEFT, padx=(0, 5))
+tk.Button(mii_pos_row, text="Right", command=lambda: set_mii_position("right"), font=FONT, width=10).pack(side=tk.LEFT)
+
+status_label = tk.Label(frame, text="", font=("@FOT-RodinNTLG Pro EB", 9), fg="black", bg="#00FF00", relief=tk.RAISED, bd=1)
 status_label.pack(anchor="w")
-ui_elements["status_label"] = status_label
+
+watermark_frame = tk.Frame(window, bg="#3A3A3A")
+watermark_frame.place(relx=1.0, rely=1.0, anchor="se", x=-6, y=-6)
+
+try:
+    wm_response = requests.get(
+        "https://tcrf.net/images/thumb/2/29/Chunithm_Amazon_Character_Final.png/256px-Chunithm_Amazon_Character_Final.png",
+        timeout=5
+    )
+    wm_img = Image.open(BytesIO(wm_response.content)).convert("RGBA")
+    wm_img = wm_img.resize((12, 12), Image.Resampling.LANCZOS)
+    wm_photo = ImageTk.PhotoImage(wm_img)
+    wm_img_label = tk.Label(watermark_frame, image=wm_photo, bg="#3A3A3A")
+    wm_img_label.image = wm_photo
+    wm_img_label.pack(side=tk.LEFT, padx=(0, 3))
+except Exception:
+    pass
+
+tk.Label(watermark_frame, text="made by dragiee", font=("@FOT-RodinNTLG Pro EB", 8), fg="#888888", bg="#3A3A3A").pack(side=tk.LEFT)
 
 window.mainloop()
