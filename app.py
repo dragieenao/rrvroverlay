@@ -111,25 +111,25 @@ def create_data_window(vr_value, mii_image_base64, vr_delta=None) -> None:
 
     data_window = tk.Toplevel(window)
     data_window.title("overlay display")
-    data_window.geometry("220x230")
+    data_window.geometry("220x200")
     data_window.resizable(False, False)
     data_window.config(bg="#00FF00")
 
-    frame_data = tk.Frame(data_window, padx=14, pady=14, bg="#00FF00")
+    frame_data = tk.Frame(data_window, padx=10, pady=10, bg="#00FF00")
     frame_data.pack(fill="both", expand=True)
 
-    vr_canvas = tk.Canvas(frame_data, width=192, height=60, bg="#00FF00", highlightthickness=0)
-    vr_canvas.pack(anchor="w")
-    draw_outlined_text(vr_canvas, f"VR: {vr_value}", 96, 30, ("@FOT-RodinNTLG Pro EB", 18, "bold"))
-    ui_elements["data_vr_canvas"] = vr_canvas
-
-    delta_label = tk.Label(frame_data, text="", font=("@FOT-RodinNTLG Pro EB", 13, "bold"), bg="#00FF00")
-    delta_label.pack(anchor=get_delta_anchor(), pady=(0, 4))
+    delta_label = tk.Label(frame_data, text="", font=("@FOT-RodinNTLG Pro EB", 13, "bold"), bg="#00FF00", anchor="w")
+    delta_label.pack(anchor="nw", pady=(0, 1))
     ui_elements["data_delta_label"] = delta_label
 
     if vr_delta is not None:
         text, color = format_delta(vr_delta)
         delta_label.config(text=text, fg=color)
+
+    vr_canvas = tk.Canvas(frame_data, width=192, height=50, bg="#00FF00", highlightthickness=0)
+    vr_canvas.pack(anchor="w", pady=(0, 1))
+    draw_outlined_text(vr_canvas, f"VR: {vr_value}", 96, 25, ("@FOT-RodinNTLG Pro EB", 18, "bold"))
+    ui_elements["data_vr_canvas"] = vr_canvas
 
     if mii_image_base64:
         try:
@@ -137,7 +137,7 @@ def create_data_window(vr_value, mii_image_base64, vr_delta=None) -> None:
             mii_label = tk.Label(frame_data, image=photo, bg="#00FF00")
             mii_label.image = photo
             if show_mii_image:
-                mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
+                mii_label.pack(anchor=get_mii_anchor(), pady=(2, 0))
             ui_elements["data_mii_label"] = mii_label
         except Exception as e:
             print(f"Error loading Mii image: {e}")
@@ -180,18 +180,15 @@ def update_data_window(vr_value, mii_image_base64, vr_delta=None) -> None:
             photo = decode_mii_image(mii_image_base64)
             mii_label = ui_elements.get("data_mii_label")
             if mii_label and mii_label.winfo_exists():
+                # Only update the image, never re-pack — pack order is set at create time
                 mii_label.config(image=photo)
                 mii_label.image = photo
-                if show_mii_image:
-                    mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
-                else:
-                    mii_label.pack_forget()
             else:
                 parent = ui_elements["data_vr_canvas"].master
                 mii_label = tk.Label(parent, image=photo, bg="#00FF00")
                 mii_label.image = photo
                 if show_mii_image:
-                    mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
+                    mii_label.pack(anchor=get_mii_anchor(), pady=(2, 0))
                 ui_elements["data_mii_label"] = mii_label
         except Exception as e:
             print(f"Error updating Mii image: {e}")
@@ -209,7 +206,7 @@ def toggle_mii_image() -> None:
     mii_label = ui_elements.get("data_mii_label")
     if mii_label and mii_label.winfo_exists():
         if show_mii_image:
-            mii_label.pack(anchor=get_mii_anchor(), pady=(4, 0))
+            mii_label.pack(anchor=get_mii_anchor(), pady=(2, 0))
         else:
             mii_label.pack_forget()
 
@@ -225,8 +222,7 @@ def set_mii_position(pos: str) -> None:
 
     delta_label = ui_elements.get("data_delta_label")
     if delta_label and delta_label.winfo_exists():
-        delta_label.pack_forget()
-        delta_label.pack(anchor=get_delta_anchor(), pady=(0, 4))
+        delta_label.config(anchor=get_delta_anchor())
 
 
 FONT = ("@FOT-RodinNTLG Pro EB", 11)
