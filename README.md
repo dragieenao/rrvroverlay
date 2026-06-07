@@ -1,5 +1,6 @@
 # Retro Rewind VR Stream Overlay 
-<img width="773" height="350" alt="image" src="https://github.com/user-attachments/assets/5c0dee5f-37c1-4fab-8067-12407d4934ea" />
+<img width="577" height="341" alt="image" src="https://github.com/user-attachments/assets/b7a3fc7e-b746-46c4-8f70-5c89c6f77cdb" />
+
 
 
 ## Overview
